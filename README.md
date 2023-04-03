@@ -11,6 +11,7 @@ In practice, you might see a card one time and get it right, then see it again i
 The technical aspect about how SRS models the rate at which one forgets something is through the [forgetting curve](https://www.wikiwand.com/en/Forgetting_curve). This curve models the rate at which one retains a piece of information decreases over time at a certain rate determined by the stability constant for that specific piece of information.
 
 Equation for the forgetting curve, where R is the retainability, t is the time elapsed, and S is the stability constant:
+
 $$ R = e^{- \frac{t}{S}} $$
 
 The current system falls short by imposing a single, constant, S for all information, for all individuals, when not all information is as easy to learn as the other, and not all people learn at the same speeds. Thus, the increments in the next review time is fixed and impersonal, which makes it a one-size-fits-all system that does not accommodate to people with different learning and retention rates.
