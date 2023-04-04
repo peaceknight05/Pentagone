@@ -57,6 +57,18 @@ class SpacedRepetition:
 			return math.e ** (-t / self.getStability(i)) # Formula for forgetting curve
 		return 0
 
+	# Get time when retrivability falls
+	# Below memorisation threshold.
+	def getForgettingTime(self, i):
+		t = self.timestamps[i]
+		if t == 0: # If never seen word before
+			return 0 # Word is already not memorised
+		s = self.getStability(i)
+		# Solve for t (converted to seconds) where R = threshold
+		# Add to time last seen to get time where R = threshold
+		t += -s * math.log(self.threshold) * 3600
+		return t
+
 	# Get the word with the lowest retrivability
 	# Also gets a new word
 	def getLowestAndNew(self, t):
@@ -82,10 +94,15 @@ class SpacedRepetition:
 		# If not all words are new, not all words are memorised,
 		# Or there are no more new words, show the word with the
 		# Lowest retrivability (in most need of a refresher)
-		if lowRetrivability != -1 and lowRetrivability < self.threshold or newIndex == -1:
-			return (lowIndex, lowWord, self.desclist[lowIndex])
+		if lowRetrivability != -1 and lowRetrivability < self.threshold:
+			return (lowIndex, lowWord, self.desclist[lowIndex], None)
 		# Else show a new word to learn
-		return (newIndex, newWord, self.desclist[newIndex])
+		if newIndex == -1: # There are no new words to learn and every word is memorised
+			# Return next review time
+			# (Time when first word will be
+			# Below the threshold)
+			return (-1, "", "", self.getForgettingTime(lowIndex))
+		return (newIndex, newWord, self.desclist[newIndex], None)
 
 	# Retrain model and update statistics
 	def review(self, i, correct, t):
@@ -117,6 +134,5 @@ class SpacedRepetition:
 			"right": self.right,
 			"wrong": self.wrong,
 			"cache": self.cache,
-			"prop": self.prop,
 			"threshold": self.threshold
 		}, open(path, "w+"), indent=4)

@@ -12,10 +12,18 @@ sr = SpacedRepetition(cache)
 # Event loop
 while 1:
 	# Get current time to standardise operations
-	currentTime = time.time()
+	currentTime = time.localtime()
+	currentTimestamp = time.mktime(currentTime)
 
 	# Get next word from model and diplay
-	nextIndex, nextWord, nextDefinition = sr.getNext(currentTime)
+	nextIndex, nextWord, nextDefinition, nextReview = sr.getNext(currentTimestamp)
+
+	# Check if review is needed
+	if nextIndex == -1:
+		formattedReview = time.strftime("%x %X", time.localtime(nextReview))
+		print(f"All words reviewed!\nNext review at: {formattedReview}")
+		break
+
 	print(nextDefinition)
 
 	# Get input (word from definition)
@@ -23,7 +31,7 @@ while 1:
 
 	# Evaluate and train
 	if answer == "~": break
-	else: sr.review(nextIndex, e:=(answer == nextWord), currentTime)
+	else: sr.review(nextIndex, e:=(answer == nextWord), currentTimestamp)
 
 	# Feedback
 	print("Correct!\n" if e else f"Wrong: it was {nextWord}\n")
