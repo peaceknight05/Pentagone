@@ -1,1 +1,4 @@
 __pycache__/*
+frontend/__pycache__/*
+web/__pycache__/*
+srs/__pycache__/*
