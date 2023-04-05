@@ -14,7 +14,10 @@ class SpacedRepetition:
 	lasteval = [] # Whether last check was right or wrong
 	cache = dict() # Cache predictions to reduce need to re-predict for information that has not changed
 	threshold = 0.8 # Threshold for what is considered memorised
-	positiveOffset = 0.075 # Reward for getting it right
+	positiveOffset = 0.11 # Reward for getting it right
+	n = 0 # Number of cards seen in this session
+	batchSize = 10 # Batch size for training
+	features, labels = [], [] # Stored data for training
 
 	# Initalisation function (load from storage)
 	def __init__(self, cache, model_path):
@@ -102,7 +105,8 @@ class SpacedRepetition:
 					words[4] = word
 				continue
 			timesince = (t - self.timestamps[i])/3600 # Time for formula is in hours
-			if (r:=self.getRetrivability(i, timesince)) < minimum:
+			r = self.getRetrivability(i, timesince)
+			if r < minimum:
 				minimum = r
 				words[0], words[1], words[2] = i, r, word
 
@@ -125,20 +129,24 @@ class SpacedRepetition:
 		return (newIndex, newWord, self.desclist[newIndex], None)
 
 	# Train model
-	def train(self, i, correct, t):
-		pred = self.getPrediction(i)
-		predOutcome = self.getRetrivability(i, t)
-		if correct:
-			label = self.calculateStability(t, correct) if predOutcome < self.threshold else pred
-		else:
-			label = self.calculateStability(t, correct) if predOutcome > (1 - self.threshold) else pred
+	def train(self):
 		self.model.fit(
-			[[self.right[i], self.wrong[i], self.maxtimesince[i]/3600, self.lasttimesince[i]/3600, self.lasteval[i]]],
-			[label],
-			batch_size=1,
-			epochs=1,
+			self.features,
+			self.labels,
+			batch_size=2,
+			epochs=5,
 			verbose=0
 		)
+
+	# Process data for training
+	def accumulateTrainingData(self, i, correct, t):
+		self.features.append([
+			self.right[i],
+			self.wrong[i],
+			self.maxtimesince[i],
+			self.lasttimesince[i],
+			self.lasteval[i]])
+		self.labels.append(self.calculateStability(t, correct))
 
 	# Retrain model and update statistics
 	def review(self, i, correct, t):
@@ -146,7 +154,10 @@ class SpacedRepetition:
 		timesince = t - lastseen if lastseen != 0 else 0
 		# Don't train if first time as S will always be calculated as 0
 		if timesince != 0:
-			self.train(i, correct, timesince)
+			self.n += 1
+			self.accumulateTrainingData(i, correct, timesince)
+		if self.n != 0 and self.n % self.batchSize == 0:
+			self.train()
 		if correct:
 			# If correct increase right count
 			# Also update maxtimesince if needed
@@ -168,6 +179,8 @@ class SpacedRepetition:
 	# (Except for model, which hasn't been
 	# Implemented yet)
 	def export(self, path, model_path):
+		if self.n % self.batchSize != 0:
+			self.train()
 		json.dump({
 			"words": self.wordlist,
 			"descs": self.desclist,
