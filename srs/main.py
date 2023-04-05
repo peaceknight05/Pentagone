@@ -6,8 +6,8 @@ import json
 import time
 
 # Load stored information and instantiate
-cache = json.load(open("cache.json", "r+"))
-sr = SpacedRepetition(cache)
+cache = json.load(open("biology.json", "r+"))
+sr = SpacedRepetition(cache, "model.h5")
 
 # Event loop
 while 1:
@@ -20,7 +20,7 @@ while 1:
 
 	# Check if review is needed
 	if nextIndex == -1:
-		formattedReview = time.strftime("%x %X", time.localtime(nextReview))
+		formattedReview = time.strftime("%d/%m/%y %I:%M:%S %p", time.localtime(nextReview))
 		print(f"All words reviewed!\nNext review at: {formattedReview}")
 		break
 
@@ -37,4 +37,4 @@ while 1:
 	print("Correct!\n" if e else f"Wrong: it was {nextWord}\n")
 
 # Save information
-sr.export("cache.json")
+sr.export("biology.json", "model.h5")
