@@ -17,6 +17,7 @@ class SpacedRepetition:
 	positiveOffset = 0.11 # Reward for getting it right
 	n = 0 # Number of cards seen in this session
 	batchSize = 10 # Batch size for training
+	propagate = []
 	features, labels = [], [] # Stored data for training
 
 	# Initalisation function (load from storage)
@@ -138,8 +139,15 @@ class SpacedRepetition:
 			verbose=0
 		)
 
+		# Propagate cache
+		for i in self.propagate:
+			self.cache[i] = self.getPrediction(i)
+
 	# Process data for training
 	def accumulateTrainingData(self, i, correct, t):
+		# Set to propagate once training happens
+		self.propagate.append(i)
+		# Add features and labels
 		self.features.append([
 			self.right[i],
 			self.wrong[i],
