@@ -10,6 +10,7 @@ CWD = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(CWD, "data")
 sr = None
 
+
 def get_file_data(file_name):
     file_path = os.path.join(DATA_DIR, file_name)
 
@@ -19,8 +20,10 @@ def get_file_data(file_name):
 
     return json_data
 
+
 def index(request):
     return JsonResponse({"message": "This service is working normally.", "status": 200}, status=200)
+
 
 def get_decks(request):
     decks = []
@@ -28,12 +31,12 @@ def get_decks(request):
     # Get all the file names in the data directory.
     count = 0
     for file in os.listdir(DATA_DIR):
-        if file.endswith(".json") and not(file in ["_template.json"]):
+        if file.endswith(".json") and not (file in ["_template.json"]):
             data = get_file_data(file)
             decks.append(data)
-    
+
     return JsonResponse({"data": decks, "status": 200}, status=200)
-        
+
 
 def get_deck(request, deck_name):
     # Validates if the deck exists as an existing JSON file.
@@ -43,6 +46,7 @@ def get_deck(request, deck_name):
 
     data = get_file_data(deck_name + ".json")
     return JsonResponse({"data": data, "status": 200}, status=200)
+
 
 @csrf_exempt
 def start_review(request):
@@ -56,18 +60,24 @@ def start_review(request):
             raise KeyError
     except KeyError:
         return JsonResponse({"message": "You must provide a deck name.", "status": 400}, status=400)
-    
+
     file_path = os.path.join(DATA_DIR, deck_name + ".json")
     if not os.path.exists(file_path):
         return JsonResponse({"message": "The deck you requested does not exist.", "status": 404}, status=404)
-    
-    sr = SpacedRepetition(get_file_data(file_path), os.path.join(CWD, "srs", "model.h5"))
+
+    # Purges and creates a new spaced repetition object.
+    if sr is not None:
+        sr = None
+    sr = SpacedRepetition(get_file_data(file_path),
+                          os.path.join(CWD, "srs", "model.h5"))
 
     # Gets the first word to review.
     currentTimestamp = time.mktime(time.localtime())
-    nextIndex, nextWord, nextDefinition, nextReview = sr.getNext(currentTimestamp)
+    nextIndex, nextWord, nextDefinition, nextReview = sr.getNext(
+        currentTimestamp)
 
     return JsonResponse({"data": {"deck_name": deck_name, "nextIndex": nextIndex, "nextWord": nextWord, "nextDefinition": nextDefinition, "currentTimestamp": currentTimestamp, "nextReview": nextReview}, "status": 200}, status=200)
+
 
 @csrf_exempt
 def review(request):
@@ -81,21 +91,23 @@ def review(request):
         nextIndex = data["nextIndex"]
         currentTimestamp = data["currentTimestamp"]
         attempt = data["attempt"]
-        print(not deck_name, not nextIndex, not currentTimestamp, not (attempt and attempt in ["right", "wrong"]))
         if not deck_name or not currentTimestamp or not (attempt and attempt in ["right", "wrong"]):
             raise KeyError
     except KeyError:
         return JsonResponse({"message": "Expected data payload.", "status": 400}, status=400)
 
-    sr.review(nextIndex, True if attempt == "right" else False, currentTimestamp)
+    sr.review(nextIndex, True if attempt ==
+              "right" else False, currentTimestamp)
 
     # Generates the next word to review.
     currentTimestamp = time.mktime(time.localtime())
-    nextIndex, nextWord, nextDefinition, nextReview = sr.getNext(currentTimestamp)
+    nextIndex, nextWord, nextDefinition, nextReview = sr.getNext(
+        currentTimestamp)
 
     if nextIndex == -1:
-        sr.export(os.path.join(DATA_DIR, deck_name + ".json"), os.path.join(CWD, "srs", "model.h5"))
+        sr.export(os.path.join(DATA_DIR, deck_name + ".json"),
+                  os.path.join(CWD, "srs", "model.h5"))
         sr = None
-        return JsonResponse({"data": {"nextReview": nextReview}, "message": "You have finished reviewing this deck.", "status": 204}, status=204)
+        return JsonResponse({"data": {"nextReview": nextReview}, "message": "You have finished reviewing this deck.", "status": 200}, status=200)
 
     return JsonResponse({"data": {"deck_name": deck_name, "nextIndex": nextIndex, "nextWord": nextWord, "nextDefinition": nextDefinition, "currentTimestamp": currentTimestamp, "nextReview": nextReview}, "status": 200}, status=200)
