@@ -1,6 +1,6 @@
 # Pentagone
 
-Pentagone is a web-based tool that improves upon Spaced Repetition Systems (SRS) with continual deep learning.
+Pentagone is a web-based tool that improves upon Spaced Repetition Systems (SRS) with continual deep learning. [View the demo video here!](https://drive.google.com/drive/folders/1mt5U07eek9PfkmfKSsUT7AIL48ig5Yja?usp=share_link)
 
 ## Brief Introduction to SRS
 
