@@ -5,6 +5,7 @@ from keras.models import load_model
 
 # AI and logic class
 class SpacedRepetition:
+	name = "" # Name of deck
 	wordlist = [] # Words
 	desclist = [] # Descriptions
 	timestamps = [] # Timestamp of time last seen (0 if not seen)
@@ -22,6 +23,7 @@ class SpacedRepetition:
 
 	# Initalisation function (load from storage)
 	def __init__(self, cache, model_path):
+		self.name = cache["name"]
 		self.wordlist = cache["words"]
 		self.desclist = cache["descs"]
 		self.timestamps = cache["timestamps"]
@@ -190,6 +192,7 @@ class SpacedRepetition:
 		if self.n % self.batchSize != 0:
 			self.train()
 		json.dump({
+			"name": self.name,
 			"words": self.wordlist,
 			"descs": self.desclist,
 			"timestamps": self.timestamps,

@@ -1,7 +1,8 @@
 <script setup>
 const count = ref(0)
 const flipped = ref(false);
-const { data: context } = await useFetch('http://localhost:8000/');
+// TODO: Dyanamically fetch the deck name from the url
+const { data: context } = await useFetch('http://localhost:8000/deck/biology');
 </script>
 
 <template>
@@ -11,7 +12,7 @@ const { data: context } = await useFetch('http://localhost:8000/');
                 <div class="flex-container">
                     <div class="pentagone">
                         <img class="logo" src="/img/logo.png"/>
-                        <h2>Pentagone</h2>
+                        <h2><a href="/decks" >Pentagone</a></h2>
                     </div>
                     <div>
                         <h2>Biology</h2>
@@ -82,7 +83,7 @@ const { data: context } = await useFetch('http://localhost:8000/');
 }
 
 .card-buttons > button {
-    width: auto !important;
+    width: auto !important
 }
 
 p {
