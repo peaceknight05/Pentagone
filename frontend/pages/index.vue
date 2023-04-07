@@ -28,7 +28,18 @@ const startReview = async () => {
         error.value.message +
         ". We'll redirect you back to your decks."
     );
-    router.push("decks");
+	router.push("decks");
+  }
+  if (displayData.value.data.nextReview) {
+    finished.value = true;
+    // Recreate nextReview in a more readable format, including the time.
+    const nextReview = new Date(
+      displayData.value.data.nextReview * 1000
+    ).toLocaleString();
+    alert(
+      `This deck is still fresh in your memory! Your learning model suggests coming back to review at ${nextReview}. We'll redirect you back to your decks.`
+    );
+	router.push("decks");
   }
 };
 
@@ -40,30 +51,25 @@ const updateReview = async (state) => {
       attempt: state,
     },
   });
-  setTimeout(() => {
-    displayData.value = data.value;
-  }, 1500);
-  if (displayData.value.message !== undefined) {
-    finished.value = true;
-    // Recreate nextReview in a more readable format, including the time.
-    const nextReview = new Date(
-      displayData.value.data.nextReview * 1000
-    ).toLocaleString();
-    alert(
-      `You have finished the review! Your learning model has been tuned for your next review on ${nextReview}. We'll redirect you back to your decks.`
-    );
-    displayData.value = null;
-    router.push("decks");
-  }
   if (error.value !== null) {
     alert(
       "An error has occurred while fetching the data: " +
         error.value.message +
         ". We'll redirect you back to your decks."
     );
-    router.push("decks");
-  } else {
-    displayData.value = data.value;
+	router.push("decks");
+  }
+  displayData.value = data.value;
+  if (displayData.value.data.nextReview) {
+    finished.value = true;
+    // Recreate nextReview in a more readable format, including the time.
+    const nextReview = new Date(
+      displayData.value.data.nextReview * 1000
+    ).toLocaleString();
+    alert(
+      `You have finished the review! Your learning model suggests coming back to review at ${nextReview}. We'll redirect you back to your decks.`
+    );
+	router.push("decks");
   }
 };
 
@@ -82,17 +88,17 @@ if (deck !== undefined) {
             <h2><a href="/decks">Pentagone</a></h2>
           </div>
           <div>
-            <h2 v-if="deck !== undefined">{{ displayData.data.name }}</h2>
+            <h2 v-if="deck !== undefined">{{ displayData.data.deck_name }}</h2>
           </div>
         </div>
       </div>
       <div class="row card-container" v-if="deck !== undefined">
         <button class="card" @click="flipped = !flipped">
           <div v-if="flipped == false">
-            <h3>{{ displayData.data.nextWord }}</h3>
+            <h3>{{ displayData.data.nextDefinition }}</h3>
           </div>
           <div v-else>
-            <h3>{{ displayData.data.nextDefinition }}</h3>
+            <h3>{{ displayData.data.nextWord }}</h3>
 
             <div class="card-buttons">
               <button @click.prevent="updateReview('right')">I got it</button>
@@ -158,6 +164,10 @@ if (deck !== undefined) {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.card.disabled {
+	background-color: hsl(227, 50%, 70%);
 }
 
 .card-container {

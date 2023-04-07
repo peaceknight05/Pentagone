@@ -76,7 +76,13 @@ def start_review(request):
     nextIndex, nextWord, nextDefinition, nextReview = sr.getNext(
         currentTimestamp)
 
-    return JsonResponse({"data": {"deck_name": deck_name, "nextIndex": nextIndex, "nextWord": nextWord, "nextDefinition": nextDefinition, "currentTimestamp": currentTimestamp, "nextReview": nextReview}, "status": 200}, status=200)
+    if nextIndex == -1:
+        sr.export(os.path.join(DATA_DIR, deck_name + ".json"),
+                  os.path.join(CWD, "srs", "model.h5"))
+        sr = None
+        return JsonResponse({"data": {"nextReview": nextReview}, "status": 200}, status=200)
+
+    return JsonResponse({"data": {"deck_name": deck_name.capitalize(), "nextIndex": nextIndex, "nextWord": nextWord, "nextDefinition": nextDefinition, "currentTimestamp": currentTimestamp, "nextReview": nextReview}, "status": 200}, status=200)
 
 
 @csrf_exempt
@@ -96,8 +102,8 @@ def review(request):
     except KeyError:
         return JsonResponse({"message": "Expected data payload.", "status": 400}, status=400)
 
-    sr.review(nextIndex, True if attempt ==
-              "right" else False, currentTimestamp)
+    sr.review(nextIndex, attempt ==
+              "right", currentTimestamp)
 
     # Generates the next word to review.
     currentTimestamp = time.mktime(time.localtime())
@@ -108,6 +114,6 @@ def review(request):
         sr.export(os.path.join(DATA_DIR, deck_name + ".json"),
                   os.path.join(CWD, "srs", "model.h5"))
         sr = None
-        return JsonResponse({"data": {"nextReview": nextReview}, "message": "You have finished reviewing this deck.", "status": 200}, status=200)
+        return JsonResponse({"data": {"nextReview": nextReview}, "status": 200}, status=200)
 
-    return JsonResponse({"data": {"deck_name": deck_name, "nextIndex": nextIndex, "nextWord": nextWord, "nextDefinition": nextDefinition, "currentTimestamp": currentTimestamp, "nextReview": nextReview}, "status": 200}, status=200)
+    return JsonResponse({"data": {"deck_name": deck_name.capitalize(), "nextIndex": nextIndex, "nextWord": nextWord, "nextDefinition": nextDefinition, "currentTimestamp": currentTimestamp, "nextReview": nextReview}, "status": 200}, status=200)
