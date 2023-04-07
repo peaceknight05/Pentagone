@@ -1,3 +1,5 @@
+import json
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 from .models import Deck
@@ -36,3 +38,11 @@ class DeckDetailView(DetailView):
         context["words"] = [{k: v for k, v in zip(
             ["word", "desc", "timestamp", "maxtimesince", "lasttimesince", "right", "wrong", "lasteval"], inner_list)} for inner_list in list(zip(*context["deck"].data.values()))]
         return context
+
+def index(req):
+    file_path = 'C:\pentagone3\ml_stuff\\biology.json'
+    with open(file_path, 'r') as file: 
+        json_data = json.load(file)
+    
+        context = { 'data': json_data }
+        return JsonResponse(context)
